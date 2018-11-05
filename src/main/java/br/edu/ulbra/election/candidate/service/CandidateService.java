@@ -3,7 +3,9 @@ package br.edu.ulbra.election.candidate.service;
 import br.edu.ulbra.election.candidate.input.v1.CandidateInput;
 import br.edu.ulbra.election.candidate.model.Candidate;
 import br.edu.ulbra.election.candidate.output.v1.CandidateOutput;
+import br.edu.ulbra.election.candidate.output.v1.ElectionOutput;
 import br.edu.ulbra.election.candidate.output.v1.GenericOutput;
+import br.edu.ulbra.election.candidate.output.v1.PartyOutput;
 import br.edu.ulbra.election.candidate.repository.CandidateRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -36,15 +38,21 @@ public class CandidateService {
 
     public CandidateOutput create(CandidateInput candidateInput) {
 
-        Candidate candidate = new Candidate();
-        candidate.setName(candidateInput.getName());
-        candidate.setPartyId(candidateInput.getPartyId());
-        candidate.setElectionId(candidateInput.getElectionId());
-        candidate.setNumberElection(candidateInput.getNumberElection());
+        ElectionOutput electionOutput = new ElectionOutput();
+        PartyOutput partyOutput = new PartyOutput();
+
+        Candidate candidate = modelMapper.map(candidateInput, Candidate.class);
 
         candidate = candidateRepository.save(candidate);
 
-        return modelMapper.map(candidate, CandidateOutput.class);
+        CandidateOutput response = modelMapper.map(candidate, CandidateOutput.class);
+
+        electionOutput.setId(candidate.getElectionId());
+        response.setElectionOutput(electionOutput);
+        partyOutput.setId(candidate.getPartyId());
+        response.setPartyOutput(partyOutput);
+
+        return response;
     }
 
     public CandidateOutput update(Long candidateId, CandidateInput candidateInput) {
