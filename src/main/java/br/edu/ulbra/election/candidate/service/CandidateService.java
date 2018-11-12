@@ -8,6 +8,7 @@ import br.edu.ulbra.election.candidate.output.v1.GenericOutput;
 import br.edu.ulbra.election.candidate.output.v1.PartyOutput;
 import br.edu.ulbra.election.candidate.repository.CandidateRepository;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,8 @@ public class CandidateService {
     private ModelMapper modelMapper;
 
     private static final String MESSAGE_NOT_FOUND = "Not found";
+    private static final String MESSAGE_INVALID_NAME = "Invalid name";
+    private static final String NAME_REGEX = "(?i)^\\p{L}+ [\\p{L} ]+$";
 
     public List<CandidateOutput> getAll() {
         Type candidateOutputListType = new TypeToken<List<CandidateOutput>>() {
@@ -41,9 +44,11 @@ public class CandidateService {
         ElectionOutput electionOutput = new ElectionOutput();
         PartyOutput partyOutput = new PartyOutput();
 
+        validateName(candidateInput.getName());
+
         Candidate candidate = modelMapper.map(candidateInput, Candidate.class);
 
-        candidate = candidateRepository.save(candidate);
+        candidate = this.save(candidate);
 
         CandidateOutput response = modelMapper.map(candidate, CandidateOutput.class);
 
@@ -56,6 +61,9 @@ public class CandidateService {
     }
 
     public CandidateOutput update(Long candidateId, CandidateInput candidateInput) {
+        validateName(candidateInput.getName());
+
+        validateName(candidateInput.getName());
 
         Candidate candidate = byId(candidateId);
 
@@ -75,8 +83,20 @@ public class CandidateService {
 
     }
 
+    private Candidate save(Candidate candidate){
+        return candidateRepository.save(candidate);
+    }
+
     private Candidate byId(Long candidateId) {
         return candidateRepository.findById(candidateId).orElseThrow(() -> new EntityNotFoundException(MESSAGE_NOT_FOUND));
+    }
+
+    private void validateName(String name) {
+        if (StringUtils.isBlank(name)
+                || name.length() < 5
+                || !name.matches(NAME_REGEX)){
+            throw new EntityNotFoundException(MESSAGE_INVALID_NAME);
+        }
     }
 
 }
