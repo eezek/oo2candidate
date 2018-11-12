@@ -6,6 +6,7 @@ import br.edu.ulbra.election.candidate.exception.GenericOutputException;
 import br.edu.ulbra.election.candidate.input.v1.CandidateInput;
 import br.edu.ulbra.election.candidate.model.Candidate;
 import br.edu.ulbra.election.candidate.output.v1.CandidateOutput;
+import br.edu.ulbra.election.candidate.output.v1.ElectionOutput;
 import br.edu.ulbra.election.candidate.output.v1.GenericOutput;
 import br.edu.ulbra.election.candidate.output.v1.PartyOutput;
 import br.edu.ulbra.election.candidate.repository.CandidateRepository;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import feign.FeignException;
 
 @Service
@@ -43,9 +46,8 @@ public class CandidateService {
     }
 
     public List<CandidateOutput> getAll() {
-        Type candidateOutputListType = new TypeToken<List<CandidateOutput>>() {
-        }.getType();
-        return modelMapper.map(candidateRepository.findAll(), candidateOutputListType);
+        List<Candidate> candidateList = (List<Candidate>)candidateRepository.findAll();
+        return candidateList.stream().map(this::toCandidateOutput).collect(Collectors.toList());
     }
 
     public CandidateOutput getById(Long candidateId) {
@@ -121,6 +123,15 @@ public class CandidateService {
                 throw new GenericOutputException(MESSAGE_INVALID_ELECTION_ID);
             }
         }
+    }
+
+    public CandidateOutput toCandidateOutput(Candidate candidate){
+        CandidateOutput candidateOutput = modelMapper.map(candidate, CandidateOutput.class);
+        ElectionOutput electionOutput = electionClientService.getById(candidate.getElectionId());
+        candidateOutput.setElectionOutput(electionOutput);
+        PartyOutput partyOutput = partyClientService.getById(candidate.getPartyId());
+        candidateOutput.setPartyOutput(partyOutput);
+        return candidateOutput;
     }
 
 }
