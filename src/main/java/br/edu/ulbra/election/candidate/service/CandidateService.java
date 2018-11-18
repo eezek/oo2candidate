@@ -5,10 +5,7 @@ import br.edu.ulbra.election.candidate.client.PartyClientService;
 import br.edu.ulbra.election.candidate.exception.GenericOutputException;
 import br.edu.ulbra.election.candidate.input.v1.CandidateInput;
 import br.edu.ulbra.election.candidate.model.Candidate;
-import br.edu.ulbra.election.candidate.output.v1.CandidateOutput;
-import br.edu.ulbra.election.candidate.output.v1.ElectionOutput;
-import br.edu.ulbra.election.candidate.output.v1.GenericOutput;
-import br.edu.ulbra.election.candidate.output.v1.PartyOutput;
+import br.edu.ulbra.election.candidate.output.v1.*;
 import br.edu.ulbra.election.candidate.repository.CandidateRepository;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang.StringUtils;
@@ -70,7 +67,7 @@ public class CandidateService {
     public CandidateOutput update(Long candidateId, CandidateInput candidateInput) {
 
         Candidate candidate = byId(candidateId);
-
+        this.validateElectionVotes(candidate.getElectionId());
         candidate.setName(candidateInput.getName());
         candidate.setPartyId(candidateInput.getPartyId());
         candidate.setElectionId(candidateInput.getElectionId());
@@ -79,12 +76,11 @@ public class CandidateService {
         return modelMapper.map(candidate, CandidateOutput.class);
     }
 
-    public GenericOutput delete(Long electionId) {
-
-        candidateRepository.delete(byId(electionId));
-
+    public GenericOutput delete(Long candidateId) {
+        Candidate candidate = byId(candidateId);
+        this.validateElectionVotes(candidate.getElectionId());
+        candidateRepository.delete(byId(candidateId));
         return new GenericOutput("Candidate deleted");
-
     }
 
     private Candidate byId(Long candidateId) {
@@ -125,7 +121,18 @@ public class CandidateService {
         }
     }
 
-    public CandidateOutput toCandidateOutput(Candidate candidate){
+    private void validateElectionVotes(Long electionId)
+    {
+        try{
+            ResultOutput resultOutput = electionClientService.getVotesByElectionId(electionId);
+            if(resultOutput.getTotalVotes() > 0)
+                throw new GenericOutputException("Not Authorized");
+        } catch (FeignException e){
+            throw new GenericOutputException("Election request error");
+        }
+    }
+
+    private CandidateOutput toCandidateOutput(Candidate candidate){
         CandidateOutput candidateOutput = modelMapper.map(candidate, CandidateOutput.class);
         ElectionOutput electionOutput = electionClientService.getById(candidate.getElectionId());
         candidateOutput.setElectionOutput(electionOutput);
