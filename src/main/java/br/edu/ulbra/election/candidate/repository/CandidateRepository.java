@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CandidateRepository extends CrudRepository<Candidate, Long> {
+
+    Candidate findFirstByNumberElectionAndAndElectionId(Long numberElection, Long electionId);
+
 }
