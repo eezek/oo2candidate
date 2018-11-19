@@ -45,6 +45,10 @@ public class CandidateService {
         return modelMapper.map(byId(candidateId), CandidateOutput.class);
     }
 
+    public CandidateOutput getByElectionId(Long electionId) {
+        return modelMapper.map(candidateRepository.findByElectionId(electionId), CandidateOutput.class);
+    }
+
     public CandidateOutput create(CandidateInput candidateInput) {
 
         validateInput(candidateInput);
@@ -60,6 +64,7 @@ public class CandidateService {
 
         validateInput(candidateInput);
         validateDuplicate(candidateInput);
+        isVoted(candidateId, candidateInput.getElectionId());
 
         Candidate candidate = byId(candidateId);
 
@@ -71,9 +76,9 @@ public class CandidateService {
         return modelMapper.map(candidate, CandidateOutput.class);
     }
 
-    public GenericOutput delete(Long electionId) {
-
-        candidateRepository.delete(byId(electionId));
+    public GenericOutput delete(Long candidateId) {
+        isVoted(candidateId, null);
+        candidateRepository.delete(byId(candidateId));
 
         return new GenericOutput("Candidate deleted");
 
@@ -81,6 +86,23 @@ public class CandidateService {
 
     private Candidate byId(Long candidateId) {
         return candidateRepository.findById(candidateId).orElseThrow(() -> new EntityNotFoundException(MESSAGE_NOT_FOUND));
+    }
+
+    private void isVoted(Long candidateId, Long electionId) {
+        if (electionId == null) {
+            Optional.ofNullable(electionService.findByCandidate(candidateId)).ifPresent(x -> {
+                if (!x.isEmpty()) {
+                    throw new GenericOutputException("Cannot delete candidate!");
+                }
+            });
+        }else {
+        Optional.ofNullable(electionService.findByElectionAndCandidate(candidateId, electionId)).ifPresent(x -> {
+            if (!x.isEmpty()) {
+                throw new GenericOutputException("Cannot change candidate!");
+            }
+        });
+        }
+
     }
 
     private void validateDuplicate(CandidateInput candidateInput) {
@@ -135,4 +157,7 @@ public class CandidateService {
         return candidateOutput;
     }
 
+    public CandidateOutput getByNumber(Long candidateNum) {
+        return modelMapper.map(candidateRepository.findByNumberElection(candidateNum).orElseThrow(EntityNotFoundException::new), CandidateOutput.class);
+    }
 }
