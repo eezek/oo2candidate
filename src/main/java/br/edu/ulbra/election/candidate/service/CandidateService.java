@@ -42,7 +42,7 @@ public class CandidateService {
     }
 
     public CandidateOutput getById(Long candidateId) {
-        return modelMapper.map(byId(candidateId), CandidateOutput.class);
+        return toCandidateOutput(byId(candidateId));
     }
 
     public CandidateOutput getByElectionId(Long electionId) {
