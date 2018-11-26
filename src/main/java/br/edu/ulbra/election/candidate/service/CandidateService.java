@@ -64,7 +64,6 @@ public class CandidateService {
     public CandidateOutput update(Long candidateId, CandidateInput candidateInput) {
 
         validateInput(candidateInput);
-        validateDuplicate(candidateInput);
         isVoted(candidateId, candidateInput.getElectionId());
 
         Candidate candidate = byId(candidateId);
@@ -117,13 +116,13 @@ public class CandidateService {
         if (StringUtils.isBlank(candidateInput.getName())
                 || candidateInput.getName().length() < 5
                 || !candidateInput.getName().matches(NAME_REGEX)) {
-            throw new EntityNotFoundException(MESSAGE_INVALID_NAME);
+            throw new GenericOutputException(MESSAGE_INVALID_NAME);
         }
         if (candidateInput.getNumberElection() == null) {
             throw new GenericOutputException("Invalid Number Election");
         }
         if (candidateInput.getPartyId() == null) {
-            throw new GenericOutputException("Invalid Party");
+            throw new GenericOutputException("Invalid Party Id");
         }
 
         try {
