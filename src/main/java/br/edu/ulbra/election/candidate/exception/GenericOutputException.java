@@ -2,7 +2,10 @@ package br.edu.ulbra.election.candidate.exception;
 
 public class GenericOutputException extends RuntimeException {
 
-    public GenericOutputException(String message){
+    public GenericOutputException(String message) {
         super(message);
     }
+
+    public GenericOutputException(){super("Not Found");}
+
 }

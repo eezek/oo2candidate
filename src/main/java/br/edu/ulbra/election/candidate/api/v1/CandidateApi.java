@@ -6,6 +6,7 @@ import br.edu.ulbra.election.candidate.output.v1.GenericOutput;
 import br.edu.ulbra.election.candidate.service.CandidateService;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,8 +38,8 @@ public class CandidateApi {
 
     @GetMapping("/election/{electionId}")
     @ApiOperation(value = "Get election by Id")
-    public CandidateOutput getByElectionId(@PathVariable Long electionId) {
-        return candidateService.getByElectionId(electionId);
+    public ResponseEntity<CandidateOutput> getByElectionId(@PathVariable Long electionId) {
+        return ResponseEntity.ok(candidateService.getByElectionId(electionId));
     }
 
     @PostMapping("/")

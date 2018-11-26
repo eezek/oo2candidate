@@ -46,7 +46,8 @@ public class CandidateService {
     }
 
     public CandidateOutput getByElectionId(Long electionId) {
-        return modelMapper.map(candidateRepository.findByElectionId(electionId), CandidateOutput.class);
+        return modelMapper.map(Optional.ofNullable(candidateRepository.findByElectionId(electionId))
+                .orElseThrow(()-> new EntityNotFoundException(MESSAGE_INVALID_ELECTION_ID)), CandidateOutput.class);
     }
 
     public CandidateOutput create(CandidateInput candidateInput) {
